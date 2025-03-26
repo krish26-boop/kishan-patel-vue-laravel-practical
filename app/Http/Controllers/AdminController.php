@@ -1,0 +1,40 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\Admin;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
+
+class AdminController extends Controller
+{
+    //
+    public function login(Request $request)
+    {
+        $validated = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required|string'
+        ]);
+
+        $admin = Admin::where('email', $validated['email'])->first();
+
+        if (!$admin || !Hash::check($validated['password'], $admin->password)) {
+            return response()->json(['message' => 'Invalid credentials'], 401);
+        }
+
+        Log::info('Admin logged in: ' . $admin->email);
+
+        return response()->json([
+            'message' => 'Admin login successful',
+            'token' => $admin->createToken('auth_token', ['admin'])->plainTextToken,
+        ], 200);
+    }
+
+    public function logout(Request $request) {
+        Auth::guard('admin')->logout();
+        $request->user()->tokens()->delete();
+        return response()->json(['message' => 'Logged out successfully']);
+    }
+}
