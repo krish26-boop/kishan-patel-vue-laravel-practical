@@ -15,32 +15,30 @@
     </div>
 </template>
 
-<script>
-import api from '../axios.js';
-
-import axios from 'axios';
+<script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import axios from 'axios';
 
-export default {
-    setup() {
-            const email = ref('');
-            const password = ref('');
-            const router = useRouter();
+const email = ref('');
+const password = ref('');
+const errorMessage = ref('');
+const router = useRouter();
 
-        const login = async () => {
-            try {
-                const response = await axios.post('admin/login', {
-                    email: email.value,
-                    password: password.value,
-                });
-                localStorage.setItem('admin_token', response.data.token);
-                router.push('/admin/dashboard');
-            } catch (error) {
-                alert('Invalid credentials');
-            }
-        };
-        return { email, password, login };
-    },
+const login = async () => {
+    try {
+        const response = await axios.post('/api/admin/login', {
+            email: email.value,
+            password: password.value,
+        });
+
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('role', 'admin');
+        axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+        router.push('/admin/dashboard'); 
+    } catch (error) {
+        alert(error);
+        errorMessage.value = error.response?.data?.message || 'Login failed';
+    }
 };
 </script>

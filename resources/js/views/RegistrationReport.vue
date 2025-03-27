@@ -1,30 +1,69 @@
 <template>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <router-link to="/admin/dashboard" class="navbar-brand">Client Management</router-link>
+            <button
+                class="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarNav"
+            >
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item me-3">
+                        <router-link to="/admin/technologies" class="navbar-brand">Technology</router-link>
+                    </li>
+                    <li class="nav-item me-3">
+                        <router-link to="/admin/client-map" class="navbar-brand"
+                            >Map-Based Report</router-link
+                        >
+                    </li>
+                    <li class="nav-item me-3">
+                        <router-link to="/admin/registration-report" class="navbar-brand"
+                            >Registration Report</router-link
+                        >
+                    </li>
+                    <li class="nav-item me-3">
+                        <router-link to="/admin/technology-report" class="navbar-brand"
+                            >Technology Report</router-link
+                        >
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
     <div class="container mt-5">
         <h2>Registration Report</h2>
 
-        <div class="mb-3">
-            <label>Filter by:</label>
-            <select v-model="reportType" class="form-control" @change="fetchReport">
-                <option value="daily">Daily</option>
-                <option value="monthly">Monthly</option>
-                <option value="yearly">Yearly</option>
-            </select>
-        </div>
+         <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Source</th>
+                    <th># of Registration</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="tech in reportData" :key="tech.technology">
+                    <td>{{ tech.date }}</td>
+                    <td>{{ tech.source }}</td>
+                    <td>{{ tech.total }}</td>
+                </tr>
+            </tbody>
+        </table>
 
-        <canvas id="registrationChart"></canvas>
     </div>
 </template>
 
 <script>
-import api from '../axios.js';
 import axios from "axios";
-import Chart from "chart.js/auto";
 
 export default {
     data() {
         return {
-            reportType: "daily",
-            chart: null,
+            reportData: []
         };
     },
     mounted() {
@@ -32,29 +71,15 @@ export default {
     },
     methods: {
         async fetchReport() {
-            const response = await axios.get("clients/registration-report", {
-                headers: { Authorization: `Bearer ${localStorage.getItem('admin_token')}` },
-                params: { type: this.reportType },
-            });
-
-            this.renderChart(response.data);
-        },
-        renderChart(data) {
-            const ctx = document.getElementById("registrationChart").getContext("2d");
-
-            if (this.chart) this.chart.destroy();
-
-            this.chart = new Chart(ctx, {
-                type: "bar",
-                data: {
-                    labels: data.map(d => d.period),
-                    datasets: [{
-                        label: "Registrations",
-                        data: data.map(d => d.total),
-                        backgroundColor: "rgba(75, 192, 192, 0.6)",
-                    }]
-                }
-            });
+            try {
+                const token = localStorage.getItem('token');
+                const response = await axios.post("/api/admin/clients/registration-report", {},
+                { headers: { Authorization: `Bearer ${token}` } });
+                this.reportData = response.data;
+                console.log(this.reportData);
+            } catch (error) {
+                console.error("Error fetching report:", error);
+            }
         }
     }
 };

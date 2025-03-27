@@ -1,39 +1,76 @@
 <template>
-<nav class="sidebar">
-            <ul class="row">
-                <li><router-link to="/admin/technology">Technology</router-link></li>
-                <li><router-link to="/admin/clients">Clients</router-link></li>
-                <li><router-link to="/admin/client-map">Map-Based Report</router-link></li>
-                <li><router-link to="/admin/registration-report">Registration Report</router-link></li>
-                <li><router-link to="/admin/technology-report">Technology Report</router-link></li>
-            </ul>
-        </nav>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <router-link to="/admin/dashboard" class="navbar-brand">Client Management</router-link>
+            <button
+                class="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarNav"
+            >
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item me-3">
+                        <router-link to="/admin/technologies" class="navbar-brand">Technology</router-link>
+                    </li>
+                    <li class="nav-item me-3">
+                        <router-link to="/admin/client-map" class="navbar-brand"
+                            >Map-Based Report</router-link
+                        >
+                    </li>
+                    <li class="nav-item me-3">
+                        <router-link to="/admin/registration-report" class="navbar-brand"
+                            >Registration Report</router-link
+                        >
+                    </li>
+                    <li class="nav-item me-3">
+                        <router-link to="/admin/technology-report" class="navbar-brand"
+                            >Technology Report</router-link
+                        >
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
     <div class="container mt-5">
         <h2>Admin Dashboard</h2>
         <p>Welcome, Admin!</p>
         <button @click="logout" class="btn btn-danger">Logout</button>
     </div>
-    
-
 </template>
 
 <script>
-import api from '../axios.js';
-import axios from 'axios';
-import { useRouter } from 'vue-router';
+import axios from "axios";
+import { useRouter } from "vue-router";
 
 export default {
     setup() {
         const router = useRouter();
         const logout = async () => {
             try {
-                await axios.post('admin/logout', {}, {
-                    headers: { Authorization: `Bearer ${localStorage.getItem('admin_token')}` },
-                });
-                localStorage.removeItem('admin_token');
-                router.push('/admin/login');
+                await axios.post(
+                    "/api/admin/logout",
+                    {},
+                    {
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem(
+                                "token"
+                            )}`,
+                        },
+                    }
+                );
+                localStorage.removeItem("token"); 
+                localStorage.removeItem("role"); 
+                router.push("/admin/login");
             } catch (error) {
-                alert('Logout failed');
+                if (!localStorage.getItem("token")) {
+                    router.push("/admin/login");
+                } else {
+                    console.log(error);
+                    alert("Logout failed");
+                }
             }
         };
         return { logout };

@@ -45,7 +45,6 @@ class AuthController extends Controller
         ]);
 
         $user = User::where('email', $validated['email'])->first();
-        // dd($validated['password'] = Hash::make($value));
         if (!$user || !Hash::check($validated['password'], $user->password)) {
             return response()->json(['message' => 'Invalid credentials'], 401);
         }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Technology;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -14,20 +15,20 @@ class ClientController extends Controller
     public function index(Request $request)
     {
         //
-        $clients = User::select('id', 'first_name', 'last_name', 'email', 'location')
-        ->whereNotNull('location')
-        ->get();
+    //     $clients = User::select('id', 'first_name', 'last_name', 'email', 'location')
+    //     ->whereNotNull('location')
+    //     ->get();
 
-    return response()->json($clients);
-        // $clients = User::query();
+    // return response()->json($clients);
+        $clients = User::query();
 
-        // // Filter by Referral Source
-        // if ($request->has('referral_source')) {
-        //     $clients->where('referral_source', $request->referral_source);
-        // }
+        // Filter by Referral Source
+        if ($request->has('referral_source')) {
+            $clients->where('referral_source', $request->referral_source);
+        }
 
-        // // Paginated response
-        // return response()->json($clients->paginate(10));
+        // Paginated response
+        return response()->json($clients->paginate(10));
     }
 
     /**
@@ -64,34 +65,25 @@ class ClientController extends Controller
     }
 
     public function registrationReport(Request $request) {
-        $type = $request->get('type', 'daily'); // Default: Daily Report
-    
-        $query = User::selectRaw("
-            DATE(created_at) as period, COUNT(*) as total
-        ");
-    
-        if ($type === 'monthly') {
-            $query->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as period");
-        } elseif ($type === 'yearly') {
-            $query->selectRaw("YEAR(created_at) as period");
-        }
-    
-        $report = $query->groupBy('period')->orderBy('period', 'ASC')->get();
-    
+        $report = User::groupBy('created_at', 'referral_source')
+        ->select(['created_at', 'referral_source'])
+        ->get()
+        ->groupBy(fn($user) => $user->created_at->format('Y-m-d'))
+        ->map(fn($group) => $group->groupBy('referral_source')->map->count())
+        ->map(fn($sources, $date) => $sources->map(fn($count, $source) => [
+            'date' => $date,
+            'source' => $source,
+            'total' => $count,
+        ]))
+        ->flatten(1)
+        ->values();
         return response()->json($report);
     }
 
     public function technologyReport() {
-        $report = DB::table('users')
-            ->selectRaw("JSON_UNQUOTE(JSON_EXTRACT(technologies, '$[*]')) as technology")
-            ->whereNotNull('technologies')
-            ->get()
-            ->pluck('technology')
-            ->flatMap(fn($tech) => json_decode($tech, true))
-            ->countBy()
-            ->map(fn($count, $tech) => ['technology' => $tech, 'total' => $count])
-            ->values();
+        $report = Technology::withCount('users')->get(); 
+
     
-        return response()->json($report);
+    return response()->json($report);
     }
 }

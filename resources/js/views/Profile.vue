@@ -1,4 +1,20 @@
 <template>
+ <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container">
+                <a class="navbar-brand" href="#">Client Management</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item me-3"><router-link to="/profile" class="navbar-brand">Profile</router-link></li>
+                        <li class="nav-item">
+                            <button class="btn btn-danger" @click="logout">Logout</button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
     <div class="container mt-5">
         <h2>Profile</h2>
         <form @submit.prevent="updateProfile">
@@ -41,7 +57,7 @@
             <!-- Technology Interests -->
             <div class="mb-3">
                 <label>Technology Interests:</label>
-                <select v-model="profile.technology_interests" class="form-control" multiple>
+                <select v-model="profile.technology_interests" class="form-control" multiple style="height: 150px; overflow: auto;">
                     <option v-for="tech in technologies" :key="tech.id" :value="tech.id">
                         {{ tech.name }}
                     </option>
@@ -69,9 +85,10 @@ export default {
                 phone: '',
                 additional_phones: [],
                 location: '',
-                technology_interests: [],
+                technology_interests: {},
+                errors:{}
             },
-            technologies: [],
+            technologies: {},
             zoom: 10,
             center: [40.7128, -74.0060],
             tileLayer: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -87,7 +104,9 @@ export default {
                 this.center = this.profile.location.split(',').map(Number);
             }
 
-            const techResponse = await axios.get('/api/technologies');
+            const techResponse = await axios.get('/api/profile/gettechs', {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+            });
             this.technologies = techResponse.data;
         } catch (error) {
             console.error('Error loading profile:', error);
@@ -95,12 +114,17 @@ export default {
     },
     methods: {
         async updateProfile() {
+              this.errors = {}; // Reset server errors
+
             try {
                 await axios.post('/api/profile/update', this.profile, {
                     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
                 });
                 alert('Profile updated successfully!');
             } catch (error) {
+            if (error.response?.status === 422) {
+          this.errors = error.response.data.errors;
+        }
                 alert('Profile update failed.');
             }
         },

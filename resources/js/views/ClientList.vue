@@ -16,8 +16,7 @@
                     <th>ID</th>
                     <th>Name</th>
                     <th>Email</th>
-                    <th>Phone</th>
-                    <th>Referral Source</th>
+                   
                 </tr>
             </thead>
             <tbody>
@@ -25,8 +24,7 @@
                     <td>{{ client.id }}</td>
                     <td>{{ client.first_name }} {{ client.last_name }}</td>
                     <td>{{ client.email }}</td>
-                    <td>{{ client.phone }}</td>
-                    <td>{{ client.referral_source }}</td>
+                  
                 </tr>
             </tbody>
         </table>
@@ -37,7 +35,6 @@
 </template>
 
 <script>
-import api from '../axios.js';
 import axios from 'axios';
 
 export default {
@@ -52,12 +49,13 @@ export default {
         this.fetchClients();
     },
     methods: {
-        async fetchClients(url = 'admin/clients') {
-        console.log(url);
+        async fetchClients(url = '/api/admin/clients') {
+        console.log(localStorage.getItem('token'));
             const response = await axios.get(url, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('admin_token')}` },
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
                 params: { referral_source: this.referralFilter },
             });
+            console.log(response.data);
             this.clients = response.data;
         },
     },

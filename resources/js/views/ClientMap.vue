@@ -1,8 +1,40 @@
 <template>
+ <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <router-link to="/admin/dashboard" class="navbar-brand">Client Management</router-link>
+            <button
+                class="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarNav"
+            >
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item me-3">
+                        <router-link to="/admin/technologies" class="navbar-brand">Technology</router-link>
+                    </li>
+                    <li class="nav-item me-3">
+                        <router-link to="/admin/client-map" class="navbar-brand"
+                            >Map-Based Report</router-link
+                        >
+                    </li>
+                    <li class="nav-item me-3">
+                        <router-link to="/admin/registration-report" class="navbar-brand">Registration Report</router-link>
+                    </li>
+                    <li class="nav-item me-3">
+                        <router-link to="/admin/technology-report" class="navbar-brand">Technology Report</router-link>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
     <div class="container mt-5">
         <h2>Client Map Report</h2>
 
-        <l-map style="height: 500px" :zoom="2" :center="[20, 0]">
+        <l-map style="height: 500px" :zoom="3" :center="[20, 0]">
             <l-tile-layer
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 attribution="&copy; OpenStreetMap contributors">
@@ -19,11 +51,10 @@
 </template>
 
 <script>
-import api from '../axios.js';
 import { LMap, LTileLayer, LMarker, LPopup } from "@vue-leaflet/vue-leaflet";
-import axios from "axios";
 import "leaflet/dist/leaflet.css"; // Ensure CSS is loaded
 import L from "leaflet"; // Import Leaflet
+import axios from "axios";
 
 // Fix marker icon issue in Leaflet (ES module compatible)
 import markerIcon from "leaflet/dist/images/marker-icon.png";
@@ -49,10 +80,12 @@ export default {
     },
     methods: {
         async fetchClients() {
-            const response = await axios.get("http://localhost/kishan-patel-vue-laravel-practical/public/api/admin/clients", {
-                headers: { Authorization: `Bearer ${localStorage.getItem('admin_token')}` }
-            });
+            const token = localStorage.getItem('token');
+            const response = await axios.get("/api/admin/clients", {},
+            { headers: { Authorization: `Bearer ${token}` } });
+
             this.clients = response.data;
+            console.log(this.clients);
         },
         parseLocation(location) {
             const loc = JSON.parse(location);

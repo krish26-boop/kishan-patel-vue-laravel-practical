@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class EnsureAdmin
+class EnsureUser
 {
     /**
      * Handle an incoming request.
@@ -15,7 +15,7 @@ class EnsureAdmin
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!auth('admin')->check()) {
+        if (!auth('user')->check()) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
         

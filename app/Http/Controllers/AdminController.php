@@ -28,13 +28,24 @@ class AdminController extends Controller
 
         return response()->json([
             'message' => 'Admin login successful',
-            'token' => $admin->createToken('auth_token', ['admin'])->plainTextToken,
+            'token' => $admin->createToken('admin-token', ['admin'])->plainTextToken,
         ], 200);
     }
 
-    public function logout(Request $request) {
-        Auth::guard('admin')->logout();
-        $request->user()->tokens()->delete();
+    public function logout(Request $request)
+    {
+        $user = Auth::user(); // Get authenticated user
+
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        // Revoke all tokens for the user
+        $user->tokens()->delete();
         return response()->json(['message' => 'Logged out successfully']);
+    }
+
+    public function technologyReport() {
+        
     }
 }

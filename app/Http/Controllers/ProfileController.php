@@ -8,6 +8,7 @@ use App\Models\Technology;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class ProfileController extends Controller
 {
@@ -20,6 +21,7 @@ class ProfileController extends Controller
 
     public function updateProfile(Request $request)
     {
+        try {
         $user = Auth::user();
 
         $validated = $request->validate([
@@ -59,5 +61,14 @@ class ProfileController extends Controller
         Log::info('User updated profile: ' . $user->email);
 
         return response()->json(['message' => 'Profile updated successfully']);
+    } catch (ValidationException $e) {
+        return response()->json(['errors' => $e->errors()], 422);
+    }
+    }
+
+    public function getTechs()
+    {
+        $technologies = Technology::all();
+        return response()->json($technologies);
     }
 }

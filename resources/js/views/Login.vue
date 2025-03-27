@@ -15,32 +15,31 @@
     </div>
 </template>
 
-<script>
-import axios from 'axios';
+<script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import axios from 'axios';
 
-export default {
-   setup() {
-        const email = ref('');
-        const password = ref('');
-        const router = useRouter();
+const email = ref('');
+const password = ref('');
+const errorMessage = ref('');
+const router = useRouter();
 
-        const login = async () => {
-            try {
-                const response = await axios.post('http://localhost/kishan-patel-vue-laravel-practical/public/api/auth/login', {
-                    email: email.value,
-                    password: password.value,
-                });
-                localStorage.setItem('token', response.data.token);
-                router.push('/dashboard');
-            } catch (error) {
-                console.log(error);
-                alert('Invalid credentials');
-            }
-        };
+const login = async () => {
+    try {
+        const response = await axios.post('/api/auth/login', {
+            email: email.value,
+            password: password.value,
+        });
 
-        return { email, password, login };
-    },
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('role', 'user');
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+        axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+        router.push('/dashboard');
+    } catch (error) {
+        alert(error);
+        errorMessage.value = error.response?.data?.message || 'Login failed';
+    }
 };
 </script>
